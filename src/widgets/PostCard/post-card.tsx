@@ -22,7 +22,7 @@ export function PostCard({
   className,
   post,
   thumbnail,
-  autoplayInterval = 4000,
+  autoplayInterval = 5000,
 }: PostCardProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
@@ -128,7 +128,11 @@ export function PostCard({
     >
       <div
         className="relative overflow-hidden bg-zinc-900"
-        style={{ height: fixedHeight ? `${fixedHeight}px` : "auto", minHeight: "200px", maxHeight: "400px" }}
+        style={{
+          height: fixedHeight ? `${fixedHeight}px` : "auto",
+          minHeight: "200px",
+          maxHeight: "400px",
+        }}
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
         onTouchStart={hasMultipleImages ? handleTouchStart : undefined}
@@ -137,7 +141,7 @@ export function PostCard({
       >
         {sortedImages.length > 0 ? (
           <div
-            className="flex transition-transform duration-500 ease-out h-full"
+            className="flex transition-transform duration-1000 ease-out h-full"
             style={{ transform: `translateX(-${currentIndex * 100}%)` }}
           >
             {sortedImages.map((image, index) => (
@@ -230,9 +234,12 @@ export function PostCard({
       </div>
       <div className="mt-3">
         <h3 className="truncate font-mono text-sm">{post.title}</h3>
-        <p className="mt-1 text-xs font-mono text-zinc-500">
+        <time
+          dateTime={post.created_at}
+          className="mt-1 block text-xs font-mono text-zinc-500"
+        >
           {dayjs(post.created_at).format("YYYY.MM.DD")}
-        </p>
+        </time>
       </div>
     </Link>
   );

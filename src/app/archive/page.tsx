@@ -1,8 +1,11 @@
+import type { Metadata } from "next";
+
 import { Suspense } from "react";
 
 import type { Author } from "@/entities/author";
 import type { PostImage, PostWithAuthor } from "@/entities/post";
 
+import { SrOnlyHeading } from "@/components/ui/sr-only-heading";
 import { createServerClient } from "@/lib/supabase/server";
 import { AuthorSection } from "@/widgets/AuthorSection";
 import { PostModal } from "@/widgets/PostModal";
@@ -10,9 +13,14 @@ import { PostModal } from "@/widgets/PostModal";
 // ISR: 60초마다 재검증
 export const revalidate = 60;
 
-export const metadata = {
-  description: "Photo archive",
+export const metadata: Metadata = {
   title: "Archive",
+  description: "작가별로 분류된 사진 아카이브를 만나보세요",
+  openGraph: {
+    title: "Archive",
+    description: "작가별로 분류된 사진 아카이브를 만나보세요",
+    type: "website",
+  },
 };
 
 type PostWithImages = PostWithAuthor & { images: PostImage[] };
@@ -61,6 +69,7 @@ export default async function ArchivePage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-[1450px] mx-auto p-4 sm:p-8">
+        <SrOnlyHeading>Archive - 사진 아카이브</SrOnlyHeading>
         {authorSections.length === 0 ? (
           <p className="py-20 text-center text-muted-foreground font-mono">
             아직 포스트가 없습니다.
