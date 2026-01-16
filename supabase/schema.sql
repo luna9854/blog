@@ -1,5 +1,11 @@
 -- ===========================================
--- We Walk Neary - Database Schema
+-- Photo Archive - Database Schema
+-- ===========================================
+--
+-- 이 파일을 Supabase SQL Editor에서 실행하세요.
+--
+-- 중요: 실행 후 site_settings 테이블에서 admin_key 값을
+-- 안전한 비밀번호로 변경하세요!
 -- ===========================================
 
 -- 작성자 테이블
@@ -8,6 +14,7 @@ CREATE TABLE IF NOT EXISTS authors (
   name TEXT NOT NULL,
   instagram TEXT,
   bio TEXT,
+  avatar_url TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -41,30 +48,16 @@ CREATE TABLE IF NOT EXISTS comments (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- RLS 정책
-ALTER TABLE authors ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "authors_read" ON authors FOR SELECT USING (true);
-CREATE POLICY "authors_insert" ON authors FOR INSERT WITH CHECK (auth.role() = 'authenticated');
-CREATE POLICY "authors_update" ON authors FOR UPDATE USING (auth.role() = 'authenticated');
-CREATE POLICY "authors_delete" ON authors FOR DELETE USING (auth.role() = 'authenticated');
+-- YouTube 영상 테이블
+CREATE TABLE IF NOT EXISTS youtube_videos (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  video_id TEXT NOT NULL,
+  title TEXT,
+  order_index INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
 
-ALTER TABLE posts ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "posts_read" ON posts FOR SELECT USING (true);
-CREATE POLICY "posts_insert" ON posts FOR INSERT WITH CHECK (auth.role() = 'authenticated');
-CREATE POLICY "posts_update" ON posts FOR UPDATE USING (auth.role() = 'authenticated');
-CREATE POLICY "posts_delete" ON posts FOR DELETE USING (auth.role() = 'authenticated');
-
-ALTER TABLE post_images ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "post_images_read" ON post_images FOR SELECT USING (true);
-CREATE POLICY "post_images_insert" ON post_images FOR INSERT WITH CHECK (auth.role() = 'authenticated');
-CREATE POLICY "post_images_update" ON post_images FOR UPDATE USING (auth.role() = 'authenticated');
-CREATE POLICY "post_images_delete" ON post_images FOR DELETE USING (auth.role() = 'authenticated');
-
-ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "comments_read" ON comments FOR SELECT USING (true);
-CREATE POLICY "comments_insert" ON comments FOR INSERT WITH CHECK (true);
-
--- 사이트 설정 테이블
+-- 사이트 설정 테이블 (관리자 인증 등)
 CREATE TABLE IF NOT EXISTS site_settings (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   key TEXT NOT NULL UNIQUE,
@@ -73,9 +66,51 @@ CREATE TABLE IF NOT EXISTS site_settings (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- ===========================================
+-- RLS 정책 (Row Level Security)
+-- ===========================================
+
+-- Authors
+ALTER TABLE authors ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "authors_read" ON authors FOR SELECT USING (true);
+CREATE POLICY "authors_insert" ON authors FOR INSERT WITH CHECK (true);
+CREATE POLICY "authors_update" ON authors FOR UPDATE USING (true);
+CREATE POLICY "authors_delete" ON authors FOR DELETE USING (true);
+
+-- Posts
+ALTER TABLE posts ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "posts_read" ON posts FOR SELECT USING (true);
+CREATE POLICY "posts_insert" ON posts FOR INSERT WITH CHECK (true);
+CREATE POLICY "posts_update" ON posts FOR UPDATE USING (true);
+CREATE POLICY "posts_delete" ON posts FOR DELETE USING (true);
+
+-- Post Images
+ALTER TABLE post_images ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "post_images_read" ON post_images FOR SELECT USING (true);
+CREATE POLICY "post_images_insert" ON post_images FOR INSERT WITH CHECK (true);
+CREATE POLICY "post_images_update" ON post_images FOR UPDATE USING (true);
+CREATE POLICY "post_images_delete" ON post_images FOR DELETE USING (true);
+
+-- Comments (누구나 작성 가능)
+ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "comments_read" ON comments FOR SELECT USING (true);
+CREATE POLICY "comments_insert" ON comments FOR INSERT WITH CHECK (true);
+
+-- YouTube Videos
+ALTER TABLE youtube_videos ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "youtube_videos_read" ON youtube_videos FOR SELECT USING (true);
+CREATE POLICY "youtube_videos_insert" ON youtube_videos FOR INSERT WITH CHECK (true);
+CREATE POLICY "youtube_videos_update" ON youtube_videos FOR UPDATE USING (true);
+CREATE POLICY "youtube_videos_delete" ON youtube_videos FOR DELETE USING (true);
+
+-- Site Settings (읽기만 공개)
 ALTER TABLE site_settings ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "site_settings_read" ON site_settings FOR SELECT USING (true);
 
--- 기본 admin_key 설정 (변경 필요)
+-- ===========================================
+-- 초기 데이터
+-- ===========================================
+
+-- 관리자 키 (반드시 변경하세요!)
 INSERT INTO site_settings (key, value) VALUES ('admin_key', 'change_me_to_secure_key')
 ON CONFLICT (key) DO NOTHING;
