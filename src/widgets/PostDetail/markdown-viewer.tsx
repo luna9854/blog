@@ -47,7 +47,7 @@ export function MarkdownViewer({ className, content }: MarkdownViewerProps) {
           },
           // next/image 사용
           img: ({ src, alt }) =>
-            src ? (
+            src && typeof src === "string" ? (
               <Image
                 src={src}
                 alt={alt || "이미지"}
