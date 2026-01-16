@@ -129,11 +129,12 @@ export default function PostModalPage({ params }: Props) {
         <header
           className={cn(
             "sticky top-0 z-20 flex items-center justify-between",
-            "px-4 md:px-6 transition-all duration-200 ease-out",
+            "px-4 md:px-6 transition-all duration-200 ease-out will-change-transform",
             scrolled
               ? "py-3 md:py-4 bg-zinc-900/95 backdrop-blur-sm border-b border-zinc-700 shadow-lg"
               : "py-4 md:py-5 bg-zinc-950 border-b border-zinc-800"
           )}
+          style={{ transform: "translateZ(0)" }}
         >
           {/* 모바일: 뒤로가기 버튼 */}
           <Button
@@ -185,7 +186,10 @@ export default function PostModalPage({ params }: Props) {
         </header>
 
         {/* Content */}
-        <div className="p-4 md:p-6 lg:p-8">
+        <div
+          className="p-4 md:p-6 lg:p-8"
+          style={{ contentVisibility: "auto", containIntrinsicSize: "auto 500px" }}
+        >
           {loading ? (
             <div className="space-y-4">
               <Skeleton className="aspect-4/3 w-full" />

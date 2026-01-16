@@ -63,3 +63,19 @@ CREATE POLICY "post_images_delete" ON post_images FOR DELETE USING (auth.role() 
 ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "comments_read" ON comments FOR SELECT USING (true);
 CREATE POLICY "comments_insert" ON comments FOR INSERT WITH CHECK (true);
+
+-- 사이트 설정 테이블
+CREATE TABLE IF NOT EXISTS site_settings (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  key TEXT NOT NULL UNIQUE,
+  value TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE site_settings ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "site_settings_read" ON site_settings FOR SELECT USING (true);
+
+-- 기본 admin_key 설정 (변경 필요)
+INSERT INTO site_settings (key, value) VALUES ('admin_key', 'change_me_to_secure_key')
+ON CONFLICT (key) DO NOTHING;

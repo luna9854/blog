@@ -21,7 +21,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   };
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-screen bg-muted/30 font-sans">
       <header className="border-b border-border bg-background">
         <div className="container mx-auto flex h-14 items-center justify-between px-4">
           <Link

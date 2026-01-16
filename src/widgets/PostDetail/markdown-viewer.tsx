@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Markdown from "react-markdown";
 
 import { cn } from "@/lib/utils";
@@ -44,15 +45,18 @@ export function MarkdownViewer({ className, content }: MarkdownViewerProps) {
               </code>
             );
           },
-          // 이미지 스타일링 (layout shift 방지)
-          img: ({ ...props }) => (
-            <img
-              {...props}
-              className="rounded-lg max-w-full h-auto"
-              loading="lazy"
-              decoding="async"
-            />
-          ),
+          // next/image 사용
+          img: ({ src, alt }) =>
+            src ? (
+              <Image
+                src={src}
+                alt={alt || "이미지"}
+                width={800}
+                height={600}
+                className="rounded-lg max-w-full h-auto my-4"
+                sizes="(max-width: 768px) 100vw, 80vw"
+              />
+            ) : null,
         }}
       >
         {content}
