@@ -39,7 +39,6 @@ export default function AdminLoginPage() {
       const result = await res.json();
 
       if (result.success) {
-        sessionStorage.setItem("admin_auth", "true");
         toast.success("로그인 성공");
         router.push("/admin");
         router.refresh();

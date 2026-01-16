@@ -1,8 +1,7 @@
 "use client";
 
-import { Edit, Plus, Trash2, Users } from "lucide-react";
+import { Edit, Plus, Settings, Trash2, Users, Youtube } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -20,24 +19,12 @@ type PostWithAuthor = {
 };
 
 export default function AdminPage() {
-  const router = useRouter();
   const supabase = createClient();
   const [loading, setLoading] = useState(true);
-  const [isAuth, setIsAuth] = useState(false);
   const [posts, setPosts] = useState<PostWithAuthor[]>([]);
   const [hasAuthors, setHasAuthors] = useState(false);
 
   useEffect(() => {
-    async function checkAuth() {
-      const auth = sessionStorage.getItem("admin_auth") === "true";
-      if (!auth) {
-        router.replace("/admin/login");
-        return;
-      }
-      setIsAuth(true);
-      await fetchData();
-    }
-
     async function fetchData() {
       const { data: postsData } = (await supabase
         .from("posts")
@@ -63,10 +50,10 @@ export default function AdminPage() {
       setLoading(false);
     }
 
-    checkAuth();
-  }, [router, supabase]);
+    fetchData();
+  }, [supabase]);
 
-  if (!isAuth || loading) {
+  if (loading) {
     return (
       <div className="space-y-8">
         <div className="flex items-center justify-between">
@@ -86,6 +73,20 @@ export default function AdminPage() {
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">포스트 관리</h2>
         <div className="flex gap-2">
+          <Link
+            href="/admin/settings"
+            className={cn(buttonVariants({ variant: "outline", size: "icon" }))}
+            title="설정"
+          >
+            <Settings className="size-4" />
+          </Link>
+          <Link
+            href="/admin/videos"
+            className={cn(buttonVariants({ variant: "outline" }))}
+          >
+            <Youtube className="size-4" />
+            영상 관리
+          </Link>
           <Link
             href="/admin/authors"
             className={cn(buttonVariants({ variant: "outline" }))}

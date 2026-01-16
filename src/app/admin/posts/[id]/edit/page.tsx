@@ -17,33 +17,10 @@ export default function EditPostPage() {
 
   const supabase = createClient();
   const [loading, setLoading] = useState(true);
-  const [isAuth, setIsAuth] = useState(false);
   const [post, setPost] = useState<PostFull | null>(null);
   const [authors, setAuthors] = useState<Author[]>([]);
 
   useEffect(() => {
-    async function checkAuth() {
-      // 개발용 인증 체크
-      const devAuth = sessionStorage.getItem("dev_admin_auth");
-      if (devAuth === "true") {
-        setIsAuth(true);
-        await fetchData();
-        return;
-      }
-
-      // Supabase 인증 체크
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (user) {
-        setIsAuth(true);
-        await fetchData();
-        return;
-      }
-
-      router.replace("/admin/login");
-    }
-
     async function fetchData() {
       const { data: postData } = (await supabase
         .from("posts")
@@ -78,10 +55,10 @@ export default function EditPostPage() {
       setLoading(false);
     }
 
-    checkAuth();
+    fetchData();
   }, [router, supabase, id]);
 
-  if (!isAuth || loading) {
+  if (loading) {
     return (
       <div className="mx-auto max-w-5xl space-y-8">
         <Skeleton className="h-8 w-48" />

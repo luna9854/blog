@@ -3,7 +3,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Camera, Pencil, Plus, Trash2 } from "lucide-react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -35,7 +34,6 @@ const sanitizeFileName = (name: string): string => {
 };
 
 export default function AuthorsPage() {
-  const router = useRouter();
   const [authors, setAuthors] = useState<Author[]>([]);
   const [isPending, startTransition] = useTransition();
   const [showForm, setShowForm] = useState(false);
@@ -65,13 +63,8 @@ export default function AuthorsPage() {
   });
 
   useEffect(() => {
-    const isAuth = sessionStorage.getItem("admin_auth") === "true";
-    if (!isAuth) {
-      router.push("/admin/login");
-      return;
-    }
     fetchAuthors();
-  }, [router]);
+  }, []);
 
   const fetchAuthors = async () => {
     const { data } = (await supabase
