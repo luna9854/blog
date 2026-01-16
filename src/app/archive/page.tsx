@@ -1,14 +1,11 @@
 import type { Metadata } from "next";
 
-import { Suspense } from "react";
-
 import type { Author } from "@/entities/author";
 import type { PostImage, PostWithAuthor } from "@/entities/post";
 
 import { SrOnlyHeading } from "@/components/ui/sr-only-heading";
 import { createServerClient } from "@/lib/supabase/server";
 import { AuthorSection } from "@/widgets/AuthorSection";
-import { PostModal } from "@/widgets/PostModal";
 
 // ISR: 60초마다 재검증
 export const revalidate = 60;
@@ -87,9 +84,6 @@ export default async function ArchivePage() {
           </div>
         )}
 
-        <Suspense fallback={null}>
-          <PostModal />
-        </Suspense>
       </div>
     </div>
   );

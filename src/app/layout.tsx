@@ -85,8 +85,10 @@ export const viewport: Viewport = {
 
 export default function RootLayout({
   children,
+  modal,
 }: {
   children: React.ReactNode;
+  modal: React.ReactNode;
 }) {
   return (
     <html lang="ko" suppressHydrationWarning>
@@ -103,6 +105,9 @@ export default function RootLayout({
 
           {/* Main Content */}
           <main className="flex-1">{children}</main>
+
+          {/* Modal (Intercepting Route) */}
+          {modal}
 
           {/* Footer */}
           <footer className="py-8 text-center border-t border-zinc-800">

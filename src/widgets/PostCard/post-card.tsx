@@ -3,7 +3,7 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { PostImage, PostWithAuthor } from "@/entities/post";
 
@@ -15,32 +15,23 @@ interface PostCardProps {
   post: PostWithAuthor & { images?: PostImage[] };
   thumbnail?: string;
   className?: string;
-  autoplayInterval?: number;
 }
 
 export function PostCard({
   className,
   post,
   thumbnail,
-  autoplayInterval = 5000,
 }: PostCardProps) {
+  // 각 카드마다 4~6초 사이 랜덤 인터벌
+  const autoplayInterval = useMemo(
+    () => Math.floor(Math.random() * 2000) + 4000,
+    []
+  );
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isMobile, setIsMobile] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [fixedHeight, setFixedHeight] = useState<number | null>(null);
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
-
-  // 모바일 감지
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
 
   // Sort images by order_index
   const sortedImages = [...(post.images ?? [])].sort(
@@ -62,8 +53,11 @@ export function PostCard({
     return () => clearInterval(interval);
   }, [hasMultipleImages, isPaused, sortedImages.length, autoplayInterval]);
 
-  // 모바일: 직접 라우트 이동, 데스크톱: 모달
-  const href = isMobile ? `/archive/${post.id}` : `/archive?post=${post.id}`;
+  // 모바일 터치 피드백
+  const [isPressed, setIsPressed] = useState(false);
+
+  // 인터셉팅 라우트 (모달로 열림)
+  const href = `/archive/${post.id}`;
 
   const goToPrevious = useCallback(
     (e?: React.MouseEvent) => {
@@ -120,11 +114,15 @@ export function PostCard({
   return (
     <Link
       href={href}
-      scroll={!isMobile ? false : undefined}
+      scroll={false}
       className={cn(
-        "group block overflow-hidden transition-opacity hover:opacity-80",
+        "group block overflow-hidden transition-all duration-150 hover:opacity-80 active:scale-[0.98]",
+        isPressed && "scale-[0.98] opacity-80",
         className
       )}
+      onTouchStart={() => setIsPressed(true)}
+      onTouchEnd={() => setIsPressed(false)}
+      onTouchCancel={() => setIsPressed(false)}
     >
       <div
         className="relative overflow-hidden bg-zinc-900"

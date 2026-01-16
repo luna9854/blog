@@ -1,7 +1,7 @@
 "use client";
 
-import { X } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { ArrowLeft, X } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { Comment } from "@/entities/comment";
@@ -16,60 +16,51 @@ import { cn } from "@/lib/utils";
 import { CommentSection } from "@/widgets/CommentSection";
 import { PostContent } from "@/widgets/PostDetail";
 
-export function PostModal() {
+interface Props {
+  params: Promise<{ id: string }>;
+}
+
+export default function PostModalPage({ params }: Props) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const postId = searchParams.get("post");
   const modalRef = useRef<HTMLDivElement>(null);
+  const [postId, setPostId] = useState<string | null>(null);
 
   const [post, setPost] = useState<PostFull | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [scrolled, setScrolled] = useState(false);
   const supabase = createClient();
 
-  // 모달 내부 스크롤 감지
+  // params 처리
+  useEffect(() => {
+    params.then((p) => setPostId(p.id));
+  }, [params]);
+
+  // 모달 내부 스크롤 감지 (히스테리시스 적용으로 떨림 방지)
   const handleScroll = useCallback(() => {
     if (modalRef.current) {
-      setScrolled(modalRef.current.scrollTop > 50);
+      const scrollTop = modalRef.current.scrollTop;
+      // 스크롤 다운: 60px 이상이면 축소
+      // 스크롤 업: 30px 이하면 확대
+      // 30~60px 사이는 현재 상태 유지 (버퍼 존)
+      setScrolled((prev) => {
+        if (!prev && scrollTop > 60) return true;
+        if (prev && scrollTop < 30) return false;
+        return prev;
+      });
     }
   }, []);
-
-  // 모바일 감지 및 리다이렉트
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
-
-  // 모바일에서는 상세 페이지로 리다이렉트
-  useEffect(() => {
-    if (isMobile && postId) {
-      router.replace(`/archive/${postId}`);
-    }
-  }, [isMobile, postId, router]);
 
   // 모달 열릴 때 body 스크롤 방지
   useEffect(() => {
-    if (postId && !isMobile) {
-      document.body.style.overflow = "hidden";
-      return () => {
-        document.body.style.overflow = "";
-      };
-    }
-  }, [postId, isMobile]);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, []);
 
   useEffect(() => {
-    if (!postId) {
-      setPost(null);
-      setScrolled(false);
-      return;
-    }
+    if (!postId) return;
 
     async function fetchData() {
       if (!postId) return;
@@ -105,7 +96,7 @@ export function PostModal() {
   }, [postId, supabase]);
 
   const handleClose = () => {
-    router.push("/archive", { scroll: false });
+    router.back();
   };
 
   const refreshComments = async () => {
@@ -114,28 +105,36 @@ export function PostModal() {
     setComments(commentData);
   };
 
-  // 모바일이거나 postId가 없으면 렌더링하지 않음
-  if (!postId || isMobile) return null;
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* 데스크톱: 배경 오버레이 (클릭 시 닫기) */}
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm hidden md:block"
         onClick={handleClose}
       />
 
       <div
         ref={modalRef}
         onScroll={handleScroll}
-        className="relative z-10 max-h-[90vh] w-full max-w-4xl overflow-y-auto bg-zinc-950"
+        className="relative z-10 h-full w-full overflow-y-auto bg-zinc-950 md:h-auto md:max-h-[90vh] md:max-w-4xl"
       >
         {/* Sticky Header */}
         <div
           className={cn(
-            "sticky top-0 z-20 bg-zinc-950/95 backdrop-blur-sm border-b border-zinc-800 flex items-center justify-between",
-            scrolled ? "px-6 py-3" : "px-6 py-6"
+            "sticky top-0 z-20 bg-zinc-950/95 backdrop-blur-sm border-b border-zinc-800 flex items-center",
+            scrolled ? "px-4 py-3 md:px-6" : "px-4 py-4 md:px-6 md:py-6"
           )}
         >
+          {/* 모바일: 뒤로가기 버튼 */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleClose}
+            className="shrink-0 text-zinc-400 hover:text-foreground md:hidden mr-2"
+          >
+            <ArrowLeft className="size-5" />
+          </Button>
+
           {loading ? (
             <Skeleton className="h-6 w-1/3" />
           ) : post ? (
@@ -143,7 +142,7 @@ export function PostModal() {
               <h1
                 className={cn(
                   "font-bold font-mono tracking-wide truncate",
-                  scrolled ? "text-base" : "text-xl"
+                  scrolled ? "text-base" : "text-lg md:text-xl"
                 )}
               >
                 {post.title}
@@ -151,7 +150,7 @@ export function PostModal() {
               <p
                 className={cn(
                   "font-mono text-zinc-400",
-                  scrolled ? "text-xs" : "text-sm mt-1"
+                  scrolled ? "text-xs" : "text-xs md:text-sm mt-1"
                 )}
               >
                 {post.author.name} ·{" "}
@@ -159,20 +158,22 @@ export function PostModal() {
               </p>
             </div>
           ) : (
-            <div />
+            <div className="flex-1" />
           )}
+
+          {/* 데스크톱: X 버튼 */}
           <Button
             variant="ghost"
             size="icon"
             onClick={handleClose}
-            className="shrink-0 text-zinc-400 hover:text-foreground"
+            className="shrink-0 text-zinc-400 hover:text-foreground hidden md:flex"
           >
             <X className="size-5" />
           </Button>
         </div>
 
         {/* Content */}
-        <div className="p-6 sm:p-8">
+        <div className="p-4 md:p-6 lg:p-8">
           {loading ? (
             <div className="space-y-4">
               <Skeleton className="aspect-4/3 w-full" />
